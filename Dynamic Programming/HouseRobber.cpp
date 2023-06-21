@@ -8,19 +8,71 @@ Given an integer array nums representing the amount of money of each house, retu
 */
 class Solution {
 public:
-    int maxMoney(int n, vector<int> &nums, vector<int> &dp){
-        if(n==0){
-            return nums[n];
+    // n represents index of CURRENT house
+    int solveUsingRecursion(vector<int>& nums, int n){
+        if(n<0){
+            return 0;
         }
-        if(n<0) return 0;
+        if(n==0) return nums[0];
+        //include
+        int include = solveUsingRecursion(nums,n-2) + nums[n];
+        //exclude
+        int exclude = solveUsingRecursion(nums,n-1);
+
+        return max(include,exclude);
+    }
+    int solveUsingMem(vector<int>& nums, int n,vector<int> &dp){
+        if(n<0){
+            return 0;
+        }
+        if(n==0) return nums[0];
         if(dp[n]!=-1) return dp[n];
-        int rob = nums[n] + maxMoney(n-2,nums,dp);
-        int Nrob = 0 + maxMoney(n-1,nums,dp);
-        return dp[n] = max(rob,Nrob);
+        //include
+        int include = solveUsingMem(nums,n-2,dp) + nums[n];
+        //exclude
+        int exclude = solveUsingMem(nums,n-1,dp);
+
+        dp[n] = max(include,exclude);
+        return dp[n];
+    }
+    int solveUsingTab(vector<int>& nums, int n){
+        vector<int> dp(n+1,0); //We can also use INT_MIN but have to add extra condition for that
+        dp[0] = nums[0]; 
+        for(int i=1;i<=n;i++){
+            //include
+            int temp = 0;
+            if(i-2>=0)
+                temp = dp[i-2];
+            int include = temp + nums[i];
+            //exclude
+            int exclude = dp[i-1];
+            dp[i] = max(include,exclude);
+        }
+        return dp[n];
+    }
+    int spaceOpt(vector<int>& nums, int n){
+        int prev2 = 0;
+        int prev1 = nums[0];
+        int curr = 0;
+        for(int i=1;i<=n;i++){
+            int temp = 0;
+            if(i-2>=0) temp = prev2;
+            int include = temp + nums[i];
+            int exclude = prev1;
+            //Shift
+            curr = max(include,exclude);
+            prev2 = prev1;
+            prev1 = curr;
+        }
+        return prev1;
     }
     int rob(vector<int>& nums) {
-        int n= nums.size();
-        vector<int> dp(n+1,-1);
-        return maxMoney(n-1,nums,dp);
+        int n = nums.size()-1;
+        // int ans = solveUsingRecursion(nums,n);
+        // vector<int> dp(n+1,-1);
+        // int ans = solveUsingMem(nums,n,dp);
+        // int ans = solveUsingTab(nums,n);
+        int ans = spaceOpt(nums,n);
+        return ans;
     }
 };
